@@ -30,7 +30,11 @@ jobs:
           export ANDROID_NDK_HOME="$NDK_DIR"
           cd tools/native_ripgrep
           cargo ndk -t arm64-v8a -o ../../app/src/main/jniLibs build --release
-          ls -lh ../../app/src/main/jniLibs/arm64-v8a/
+      - name: Fetch FFmpegKit AAR
+        run: |
+          mkdir -p app/libs
+          curl -fL --retry 3 -o app/libs/ffmpeg-kit-local.aar https://maven.aliyun.com/repository/public/com/arthenica/ffmpeg-kit-full-gpl/6.0-2/ffmpeg-kit-full-gpl-6.0-2.aar
+          unzip -l app/libs/ffmpeg-kit-local.aar | grep -c "jni/arm64-v8a"
       - name: Build debug APK
         run: |
           chmod +x gradlew
