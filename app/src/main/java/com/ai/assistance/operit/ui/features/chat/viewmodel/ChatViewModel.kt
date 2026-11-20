@@ -682,6 +682,26 @@ class ChatViewModel(private val context: Context) : ViewModel() {
         }
     }
 
+    /**
+     * 没有当前对话时，直接新建一个对话并把文本发出去。
+     * 避免首次进入聊天界面时，输入内容后只弹“请新建对话”的提示，用户不知道下一步点哪里。
+     */
+    fun createNewChatAndSend(text: String) {
+        val trimmed = text.trim()
+        if (trimmed.isBlank()) return
+
+        viewModelScope.launch {
+            showChatHistorySelector(false)
+            val previousChatId = chatHistoryDelegate.currentChatId.value
+            chatHistoryDelegate.createNewChat()
+            chatHistoryDelegate.currentChatId
+                .filter { chatId -> chatId != null && chatId != previousChatId }
+                .first()
+            messageProcessingDelegate.updateUserMessage(TextFieldValue(""))
+            sendTextMessage(trimmed)
+        }
+    }
+
     fun switchChat(chatId: String) {
         chatHistoryDelegate.switchChat(chatId)
         chatRuntimeHolder.syncMainChatSelectionToFloating(chatId)
