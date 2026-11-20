@@ -14,10 +14,23 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: gradle
-      - name: Install SDK 36
+      - name: Install SDK and NDK
         run: |
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0" "ndk;27.0.12077973" > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;27.2.12479018" > /dev/null || true
+          ls "$ANDROID_HOME/ndk" || true
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+      - name: Build native ripgrep
+        run: |
+          cargo install cargo-ndk --locked
+          NDK_DIR=$(ls -d "$ANDROID_HOME"/ndk/* | head -1)
+          export ANDROID_NDK_HOME="$NDK_DIR"
+          cd tools/native_ripgrep
+          cargo ndk -t arm64-v8a -o ../../app/src/main/jniLibs build --release
+          ls -lh ../../app/src/main/jniLibs/arm64-v8a/
       - name: Build debug APK
         run: |
           chmod +x gradlew
