@@ -1798,6 +1798,11 @@ private fun ChatInputBottomBar(
     val sendMessage: () -> Unit = {
         coroutineScope.launch {
             if (currentChatId.isNullOrBlank()) {
+                val draftText = userMessage.text.trim()
+                if (draftText.isNotBlank()) {
+                    actualViewModel.createNewChatAndSend(draftText)
+                    return@launch
+                }
                 Toast.makeText(
                     context,
                     context.getString(R.string.chat_please_create_new_chat),
